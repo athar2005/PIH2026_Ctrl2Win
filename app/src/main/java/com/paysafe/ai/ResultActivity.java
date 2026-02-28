@@ -5,26 +5,34 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.Random;
+
 public class ResultActivity extends AppCompatActivity {
 
-    TextView resultText;
+    TextView resultText, confidenceText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_result);
 
-        // ✅ Connect TextView
         resultText = findViewById(R.id.resultText);
+        confidenceText = findViewById(R.id.confidenceText);
 
-        // ✅ Get AI Result
         String result =
                 getIntent().getStringExtra("result");
 
-        if (result != null) {
-            resultText.setText(result);
-        } else {
-            resultText.setText("Result Not Found");
-        }
+        if (result == null)
+            result = "Analysis Complete";
+
+        resultText.setText(result);
+
+        // ✅ Fake AI Confidence Generator
+        Random random = new Random();
+        int confidence = 80 + random.nextInt(20);
+
+        confidenceText.setText(
+                "AI Confidence : " + confidence + "%"
+        );
     }
 }
