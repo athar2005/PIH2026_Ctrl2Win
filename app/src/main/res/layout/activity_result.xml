@@ -1,27 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/primary"
+    android:background="@drawable/bg_gradient"
     android:gravity="center"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="24dp">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <!-- ✅ RESULT CARD -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Verification Result"
-        android:textColor="@color/white"
-        android:textSize="26sp"
-        android:textStyle="bold"/>
+        android:background="@drawable/card_background"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="30dp"
+        android:elevation="10dp">
 
-    <TextView
-        android:id="@+id/resultText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Payment Safe ✅"
-        android:textSize="22sp"
-        android:textColor="@color/accent"
-        android:layout_marginTop="30dp"/>
+        <!-- ✅ AI ICON -->
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/logo"
+            android:layout_marginBottom="15dp"/>
+
+        <!-- TITLE -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Verification Result"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold"/>
+
+        <!-- RESULT TEXT -->
+        <TextView
+            android:id="@+id/resultText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Analyzing..."
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#00E676"
+            android:layout_marginTop="25dp"/>
+
+    </LinearLayout>
 
 </LinearLayout>

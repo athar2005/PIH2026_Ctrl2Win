@@ -2,6 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- ✅ IMAGE ACCESS PERMISSION (Android 13+) -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+
+    <!-- ✅ OLD ANDROID SUPPORT -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"/>
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -11,28 +18,39 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PaySafeAI">
-        <activity
-            android:name=".ScanningActivity"
-            android:exported="false" />
-        <!-- SPLASH = FIRST SCREEN -->
+
+        <!-- ✅ SPLASH (APP START) -->
         <activity
             android:name=".SplashActivity"
             android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-        </activity> <!-- OTHER SCREENS -->
+
+        </activity>
+
+        <!-- ✅ HOME SCREEN -->
         <activity
             android:name=".HomeActivity"
-            android:exported="false" />
+            android:exported="false"/>
+
+        <!-- ✅ AI SCANNING SCREEN -->
+        <activity
+            android:name=".ScanningActivity"
+            android:exported="false"/>
+
+        <!-- ✅ RESULT SCREEN -->
         <activity
             android:name=".ResultActivity"
-            android:exported="false" />
+            android:exported="false"/>
+
+        <!-- OPTIONAL -->
         <activity
             android:name=".MainActivity"
-            android:exported="false" />
+            android:exported="false"/>
+
     </application>
 
 </manifest>
