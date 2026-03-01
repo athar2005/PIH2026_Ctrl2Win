@@ -23,9 +23,9 @@ import java.io.IOException;
 public class ScanningActivity extends AppCompatActivity {
 
     TextView aiText;
+    TextView scanPercent;
     ImageView paymentImage;
 
-    // ✅ BEEP SOUND PLAYER
     MediaPlayer beepSound;
 
     @Override
@@ -34,19 +34,21 @@ public class ScanningActivity extends AppCompatActivity {
         setContentView(R.layout.activity_scanning);
 
         aiText = findViewById(R.id.aiText);
+        scanPercent = findViewById(R.id.scanPercent);
         paymentImage = findViewById(R.id.paymentImage);
 
+        //----------------------------------
         // ✅ LOAD BEEP SOUND
+        //----------------------------------
         beepSound = MediaPlayer.create(this, R.raw.scan_sound);
 
         //----------------------------------
-        // HUD BLINK EFFECT
+        // ✅ HUD BLINK
         //----------------------------------
         TextView status = findViewById(R.id.aiStatus);
 
         ObjectAnimator blink =
-                ObjectAnimator.ofFloat(status,
-                        "alpha",1f,0.3f);
+                ObjectAnimator.ofFloat(status,"alpha",1f,0.3f);
 
         blink.setDuration(700);
         blink.setRepeatMode(ObjectAnimator.REVERSE);
@@ -54,7 +56,7 @@ public class ScanningActivity extends AppCompatActivity {
         blink.start();
 
         //----------------------------------
-        // SCAN LINE ANIMATION
+        // ✅ SCAN LINE
         //----------------------------------
         View scanLine = findViewById(R.id.scanLine);
 
@@ -63,8 +65,7 @@ public class ScanningActivity extends AppCompatActivity {
             View parent = (View) scanLine.getParent();
 
             float distance =
-                    parent.getHeight()
-                            - scanLine.getHeight();
+                    parent.getHeight() - scanLine.getHeight();
 
             ObjectAnimator move =
                     ObjectAnimator.ofFloat(
@@ -79,10 +80,14 @@ public class ScanningActivity extends AppCompatActivity {
             move.start();
         });
 
+        //----------------------------------
+        // ✅ START AI + %
+        //----------------------------------
         startAIThinking();
+        startFakeProgress();
 
         //----------------------------------
-        // LOAD IMAGE
+        // ✅ LOAD IMAGE
         //----------------------------------
         String uriString =
                 getIntent().getStringExtra("imageUri");
@@ -94,10 +99,9 @@ public class ScanningActivity extends AppCompatActivity {
             try {
 
                 Bitmap bitmap =
-                        MediaStore.Images.Media
-                                .getBitmap(
-                                        getContentResolver(),
-                                        imageUri);
+                        MediaStore.Images.Media.getBitmap(
+                                getContentResolver(),
+                                imageUri);
 
                 paymentImage.setImageBitmap(bitmap);
                 paymentImage.setScaleType(ImageView.ScaleType.FIT_XY);
@@ -111,7 +115,7 @@ public class ScanningActivity extends AppCompatActivity {
     }
 
     //----------------------------------
-    // AI TEXT FLOW
+    // ✅ AI TEXT FLOW
     //----------------------------------
     private void startAIThinking(){
 
@@ -128,17 +132,33 @@ public class ScanningActivity extends AppCompatActivity {
     }
 
     //----------------------------------
-    // OCR
+    // ✅ SCAN PERCENTAGE (NEW)
+    //----------------------------------
+    private void startFakeProgress(){
+
+        Handler handler = new Handler();
+
+        for(int i=1;i<=100;i++){
+
+            int value=i;
+
+            handler.postDelayed(() ->
+                            scanPercent.setText(value+"%"),
+                    i*35);
+        }
+    }
+
+    //----------------------------------
+    // ✅ OCR
     //----------------------------------
     private void scanImage(Uri uri){
 
         try{
 
             Bitmap bitmap =
-                    MediaStore.Images.Media
-                            .getBitmap(
-                                    getContentResolver(),
-                                    uri);
+                    MediaStore.Images.Media.getBitmap(
+                            getContentResolver(),
+                            uri);
 
             InputImage image =
                     InputImage.fromBitmap(bitmap,0);
@@ -155,7 +175,7 @@ public class ScanningActivity extends AppCompatActivity {
     }
 
     //----------------------------------
-    // AI LOGIC
+    // ✅ AI LOGIC
     //----------------------------------
     private void checkPayment(String text){
 
@@ -188,14 +208,12 @@ public class ScanningActivity extends AppCompatActivity {
     }
 
     //----------------------------------
-    // RESULT + BEEP SOUND
+    // ✅ RESULT + BEEP
     //----------------------------------
     private void openResult(String result){
 
-        // ✅ PLAY SCANNER BEEP
-        if(beepSound != null){
+        if(beepSound!=null)
             beepSound.start();
-        }
 
         new Handler().postDelayed(() -> {
 
@@ -208,6 +226,6 @@ public class ScanningActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
 
-        },800); // small delay after beep
+        },800);
     }
 }
