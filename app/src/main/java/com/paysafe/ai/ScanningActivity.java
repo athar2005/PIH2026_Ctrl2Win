@@ -36,7 +36,7 @@ public class ScanningActivity extends AppCompatActivity {
         cloudStatus = findViewById(R.id.cloudStatus);
 
         //----------------------------------
-        // ✅ BEEP SOUND
+        // ✅ BEEP
         //----------------------------------
         beepSound = MediaPlayer.create(this, R.raw.scan_sound);
 
@@ -47,8 +47,7 @@ public class ScanningActivity extends AppCompatActivity {
 
         if (status != null) {
             ObjectAnimator blink =
-                    ObjectAnimator.ofFloat(status,
-                            "alpha", 1f, 0.3f);
+                    ObjectAnimator.ofFloat(status,"alpha",1f,0.3f);
 
             blink.setDuration(700);
             blink.setRepeatMode(ObjectAnimator.REVERSE);
@@ -61,14 +60,13 @@ public class ScanningActivity extends AppCompatActivity {
         //----------------------------------
         View scanLine = findViewById(R.id.scanLine);
 
-        if (scanLine != null) {
+        if(scanLine!=null){
             scanLine.post(() -> {
 
-                View parent = (View) scanLine.getParent();
+                View parent=(View)scanLine.getParent();
 
                 float distance =
-                        parent.getHeight()
-                                - scanLine.getHeight();
+                        parent.getHeight()-scanLine.getHeight();
 
                 ObjectAnimator move =
                         ObjectAnimator.ofFloat(
@@ -84,9 +82,6 @@ public class ScanningActivity extends AppCompatActivity {
             });
         }
 
-        //----------------------------------
-        // ✅ AI FLOW
-        //----------------------------------
         startAIThinking();
         startFakeProgress();
 
@@ -96,11 +91,11 @@ public class ScanningActivity extends AppCompatActivity {
         String uriString =
                 getIntent().getStringExtra("imageUri");
 
-        if (uriString != null) {
+        if(uriString!=null){
 
-            Uri imageUri = Uri.parse(uriString);
+            try{
 
-            try {
+                Uri imageUri = Uri.parse(uriString);
 
                 Bitmap bitmap =
                         MediaStore.Images.Media.getBitmap(
@@ -110,8 +105,8 @@ public class ScanningActivity extends AppCompatActivity {
                 paymentImage.setImageBitmap(bitmap);
                 paymentImage.setScaleType(ImageView.ScaleType.FIT_XY);
 
-                // ✅ TAMPER CHECK
-                if (detectTampering(bitmap)) {
+                // ✅ Tamper check
+                if(detectTampering(bitmap)){
                     startCloudVerification(
                             "Tampered Screenshot ⚠️");
                     return;
@@ -119,8 +114,9 @@ public class ScanningActivity extends AppCompatActivity {
 
                 scanImage(bitmap);
 
-            } catch (Exception e) {
-                startCloudVerification("Invalid Screenshot ❌");
+            }catch(Exception e){
+                startCloudVerification(
+                        "Invalid Screenshot ❌");
             }
         }
     }
@@ -128,131 +124,143 @@ public class ScanningActivity extends AppCompatActivity {
     //----------------------------------
     // ✅ TAMPER ANALYZER
     //----------------------------------
-    private boolean detectTampering(Bitmap bitmap) {
+    private boolean detectTampering(Bitmap bitmap){
 
-        int width = bitmap.getWidth();
-        int height = bitmap.getHeight();
+        int w = bitmap.getWidth();
+        int h = bitmap.getHeight();
 
-        if (width < 400 || height < 400)
+        if(w<350 || h<350)
             return true;
 
-        float ratio = (float) width / height;
+        float ratio=(float)w/h;
 
-        return ratio < 0.4f || ratio > 2.5f;
+        return ratio<0.4f || ratio>3f;
     }
 
     //----------------------------------
-    // ✅ TRANSACTION ANALYZER
+    // ✅ SMART TRANSACTION ANALYZER
     //----------------------------------
-    private int analyzeTransaction(String text) {
+    private int analyzeTransaction(String text){
 
-        int score = 0;
+        int score=0;
 
-        if (text.matches(".*\\b(upi|gpay|phonepe|paytm)\\b.*"))
-            score++;
+        text=text.toLowerCase();
 
-        if (text.matches(".*\\b(txn|transaction|utr|ref)\\b.*"))
-            score++;
+        if(text.contains("upi")
+                || text.contains("gpay")
+                || text.contains("phonepe")
+                || text.contains("paytm")
+                || text.contains("google pay"))
+            score+=2;
 
-        if (text.matches(".*(₹|rs|inr).*\\d+.*"))
-            score++;
+        if(text.contains("txn")
+                || text.contains("utr")
+                || text.contains("transaction")
+                || text.contains("ref"))
+            score+=2;
 
-        if (text.matches(".*\\d{2}:\\d{2}.*"))
-            score++;
+        if(text.contains("₹")
+                || text.contains("rs")
+                || text.contains("amount"))
+            score+=1;
 
-        if (text.matches(".*(success|paid|credited|completed).*"))
-            score++;
+        if(text.contains("success")
+                || text.contains("paid")
+                || text.contains("credited")
+                || text.contains("completed")
+                || text.contains("sent"))
+            score+=2;
+
+        if(text.contains(":")
+                || text.contains("am")
+                || text.contains("pm")
+                || text.contains("202"))
+            score+=1;
 
         return score;
     }
 
     //----------------------------------
-    // ✅ AI TEXT FLOW
+    // ✅ AI TEXT
     //----------------------------------
-    private void startAIThinking() {
+    private void startAIThinking(){
 
-        Handler handler = new Handler();
+        Handler h=new Handler();
 
-        handler.postDelayed(() ->
-                aiText.setText("Offline AI Scanning..."), 1000);
+        h.postDelayed(() ->
+                aiText.setText("Reading Screenshot..."),1000);
 
-        handler.postDelayed(() ->
-                aiText.setText("Extracting Transaction Data..."), 2000);
+        h.postDelayed(() ->
+                aiText.setText("Extracting Transaction..."),2000);
 
-        handler.postDelayed(() ->
-                aiText.setText("Fraud Pattern Detection..."), 3000);
+        h.postDelayed(() ->
+                aiText.setText("AI Fraud Analysis Running..."),3000);
     }
 
     //----------------------------------
     // ✅ SCAN %
     //----------------------------------
-    private void startFakeProgress() {
+    private void startFakeProgress(){
 
-        Handler handler = new Handler();
+        Handler handler=new Handler();
 
-        for (int i = 1; i <= 100; i++) {
+        for(int i=1;i<=100;i++){
 
-            int value = i;
+            int v=i;
 
             handler.postDelayed(() ->
-                            scanPercent.setText(value + "%"),
-                    i * 35);
+                            scanPercent.setText(v+"%"),
+                    i*35);
         }
     }
 
     //----------------------------------
-    // ✅ OCR SCAN
+    // ✅ OCR
     //----------------------------------
-    private void scanImage(Bitmap bitmap) {
+    private void scanImage(Bitmap bitmap){
 
         InputImage image =
-                InputImage.fromBitmap(bitmap, 0);
+                InputImage.fromBitmap(bitmap,0);
 
         TextRecognition.getClient(
                         TextRecognizerOptions.DEFAULT_OPTIONS)
                 .process(image)
-                .addOnSuccessListener(result ->
-                        checkPayment(result.getText()))
+                .addOnSuccessListener(r ->
+                        checkPayment(r.getText()))
                 .addOnFailureListener(e ->
                         startCloudVerification(
                                 "Invalid Screenshot ❌"));
     }
 
     //----------------------------------
-    // ✅ FINAL AI DECISION
+    // ✅ FINAL AI DECISION (FIXED)
     //----------------------------------
-    private void checkPayment(String text) {
+    private void checkPayment(String text){
 
         String result;
 
-        if (text == null || text.trim().isEmpty()) {
+        if(text==null || text.trim().isEmpty())
+            result="Invalid Screenshot ❌";
+        else{
 
-            result = "Invalid Screenshot ❌";
-
-        } else {
-
-            text = text.toLowerCase();
-
-            int intelligenceScore =
+            int score=
                     analyzeTransaction(text);
 
-            if (intelligenceScore >= 4)
-                result = "Payment Safe ✅";
-
-            else if (intelligenceScore >= 2)
-                result = "Suspicious Payment ⚠️";
-
+            if(score>=5)
+                result="Payment Safe ✅";
+            else if(score>=3)
+                result="Suspicious Payment ⚠️";
             else
-                result = "Fake Payment ❌";
+                result="Fake Payment ❌";
         }
 
         startCloudVerification(result);
     }
 
     //----------------------------------
-    // ✅ HYBRID CLOUD VERIFY
+    // ✅ CLOUD VERIFY
     //----------------------------------
-    private void startCloudVerification(String result) {
+    private void startCloudVerification(String result){
 
         cloudStatus.setText(
                 "Checking Screenshot Integrity...");
@@ -264,15 +272,15 @@ public class ScanningActivity extends AppCompatActivity {
 
             openResult(result);
 
-        }, 2000);
+        },2000);
     }
 
     //----------------------------------
-    // ✅ RESULT + SOUND
+    // ✅ RESULT
     //----------------------------------
-    private void openResult(String result) {
+    private void openResult(String result){
 
-        if (beepSound != null)
+        if(beepSound!=null)
             beepSound.start();
 
         new Handler().postDelayed(() -> {
@@ -282,10 +290,10 @@ public class ScanningActivity extends AppCompatActivity {
                             ScanningActivity.this,
                             ResultActivity.class);
 
-            intent.putExtra("result", result);
+            intent.putExtra("result",result);
             startActivity(intent);
             finish();
 
-        }, 800);
+        },800);
     }
 }
