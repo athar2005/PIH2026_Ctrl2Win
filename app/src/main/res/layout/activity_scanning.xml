@@ -92,6 +92,17 @@
         android:layout_below="@id/scanArea"
         android:layout_marginTop="25dp"/>
 
+    <TextView
+        android:id="@+id/cloudStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Offline AI Mode Active"
+        android:textColor="#00FFC6"
+        android:textSize="13sp"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/aiStatus"
+        android:layout_marginTop="6dp"/>
+
     <!-- PROGRESS BAR -->
     <ProgressBar
         android:id="@+id/progressBar"

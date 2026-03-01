@@ -1,17 +1,15 @@
 package com.paysafe.ai;
 
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.widget.Button;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-
-import java.io.IOException;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -31,19 +29,53 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
+        //----------------------------------
+        // BUTTON BIND
+        //----------------------------------
         uploadBtn = findViewById(R.id.uploadBtn);
 
+        //----------------------------------
+        // ✅ SCAN BUTTON CLICK
+        //----------------------------------
         uploadBtn.setOnClickListener(v ->
                 imagePicker.launch("image/*"));
+
+        //----------------------------------
+        // 🔥 MAIN MAGIC — PULSE ANIMATION
+        //----------------------------------
+        startButtonPulse();
     }
 
+    //==================================
+    // ✅ BUTTON PULSE EFFECT
+    //==================================
+    private void startButtonPulse() {
+
+        ObjectAnimator pulse =
+                ObjectAnimator.ofPropertyValuesHolder(
+                        uploadBtn,
+                        PropertyValuesHolder.ofFloat("scaleX", 1f, 1.06f),
+                        PropertyValuesHolder.ofFloat("scaleY", 1f, 1.06f)
+                );
+
+        pulse.setDuration(900);
+        pulse.setRepeatMode(ObjectAnimator.REVERSE);
+        pulse.setRepeatCount(ObjectAnimator.INFINITE);
+        pulse.start();
+    }
+
+    //==================================
+    // OPEN SCANNING SCREEN
+    //==================================
     private void openScanning(Uri imageUri) {
 
         Intent intent =
-                new Intent(HomeActivity.this,
+                new Intent(
+                        HomeActivity.this,
                         ScanningActivity.class);
 
-        intent.putExtra("imageUri",
+        intent.putExtra(
+                "imageUri",
                 imageUri.toString());
 
         startActivity(intent);

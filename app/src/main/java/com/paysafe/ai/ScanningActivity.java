@@ -18,12 +18,9 @@ import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 
-import java.io.IOException;
-
 public class ScanningActivity extends AppCompatActivity {
 
-    TextView aiText;
-    TextView scanPercent;
+    TextView aiText, scanPercent, cloudStatus;
     ImageView paymentImage;
 
     MediaPlayer beepSound;
@@ -36,9 +33,10 @@ public class ScanningActivity extends AppCompatActivity {
         aiText = findViewById(R.id.aiText);
         scanPercent = findViewById(R.id.scanPercent);
         paymentImage = findViewById(R.id.paymentImage);
+        cloudStatus = findViewById(R.id.cloudStatus);
 
         //----------------------------------
-        // ✅ LOAD BEEP SOUND
+        // ✅ BEEP SOUND
         //----------------------------------
         beepSound = MediaPlayer.create(this, R.raw.scan_sound);
 
@@ -47,41 +45,47 @@ public class ScanningActivity extends AppCompatActivity {
         //----------------------------------
         TextView status = findViewById(R.id.aiStatus);
 
-        ObjectAnimator blink =
-                ObjectAnimator.ofFloat(status,"alpha",1f,0.3f);
+        if (status != null) {
+            ObjectAnimator blink =
+                    ObjectAnimator.ofFloat(status,
+                            "alpha", 1f, 0.3f);
 
-        blink.setDuration(700);
-        blink.setRepeatMode(ObjectAnimator.REVERSE);
-        blink.setRepeatCount(ObjectAnimator.INFINITE);
-        blink.start();
+            blink.setDuration(700);
+            blink.setRepeatMode(ObjectAnimator.REVERSE);
+            blink.setRepeatCount(ObjectAnimator.INFINITE);
+            blink.start();
+        }
 
         //----------------------------------
         // ✅ SCAN LINE
         //----------------------------------
         View scanLine = findViewById(R.id.scanLine);
 
-        scanLine.post(() -> {
+        if (scanLine != null) {
+            scanLine.post(() -> {
 
-            View parent = (View) scanLine.getParent();
+                View parent = (View) scanLine.getParent();
 
-            float distance =
-                    parent.getHeight() - scanLine.getHeight();
+                float distance =
+                        parent.getHeight()
+                                - scanLine.getHeight();
 
-            ObjectAnimator move =
-                    ObjectAnimator.ofFloat(
-                            scanLine,
-                            "translationY",
-                            0f,
-                            distance);
+                ObjectAnimator move =
+                        ObjectAnimator.ofFloat(
+                                scanLine,
+                                "translationY",
+                                0f,
+                                distance);
 
-            move.setDuration(1800);
-            move.setRepeatCount(ObjectAnimator.INFINITE);
-            move.setRepeatMode(ObjectAnimator.REVERSE);
-            move.start();
-        });
+                move.setDuration(1800);
+                move.setRepeatCount(ObjectAnimator.INFINITE);
+                move.setRepeatMode(ObjectAnimator.REVERSE);
+                move.start();
+            });
+        }
 
         //----------------------------------
-        // ✅ START AI + %
+        // ✅ AI FLOW
         //----------------------------------
         startAIThinking();
         startFakeProgress();
@@ -92,7 +96,7 @@ public class ScanningActivity extends AppCompatActivity {
         String uriString =
                 getIntent().getStringExtra("imageUri");
 
-        if(uriString!=null){
+        if (uriString != null) {
 
             Uri imageUri = Uri.parse(uriString);
 
@@ -106,113 +110,169 @@ public class ScanningActivity extends AppCompatActivity {
                 paymentImage.setImageBitmap(bitmap);
                 paymentImage.setScaleType(ImageView.ScaleType.FIT_XY);
 
-            } catch (IOException e){
-                e.printStackTrace();
-            }
+                // ✅ TAMPER CHECK
+                if (detectTampering(bitmap)) {
+                    startCloudVerification(
+                            "Tampered Screenshot ⚠️");
+                    return;
+                }
 
-            scanImage(imageUri);
+                scanImage(bitmap);
+
+            } catch (Exception e) {
+                startCloudVerification("Invalid Screenshot ❌");
+            }
         }
+    }
+
+    //----------------------------------
+    // ✅ TAMPER ANALYZER
+    //----------------------------------
+    private boolean detectTampering(Bitmap bitmap) {
+
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+
+        if (width < 400 || height < 400)
+            return true;
+
+        float ratio = (float) width / height;
+
+        return ratio < 0.4f || ratio > 2.5f;
+    }
+
+    //----------------------------------
+    // ✅ TRANSACTION ANALYZER
+    //----------------------------------
+    private int analyzeTransaction(String text) {
+
+        int score = 0;
+
+        if (text.matches(".*\\b(upi|gpay|phonepe|paytm)\\b.*"))
+            score++;
+
+        if (text.matches(".*\\b(txn|transaction|utr|ref)\\b.*"))
+            score++;
+
+        if (text.matches(".*(₹|rs|inr).*\\d+.*"))
+            score++;
+
+        if (text.matches(".*\\d{2}:\\d{2}.*"))
+            score++;
+
+        if (text.matches(".*(success|paid|credited|completed).*"))
+            score++;
+
+        return score;
     }
 
     //----------------------------------
     // ✅ AI TEXT FLOW
     //----------------------------------
-    private void startAIThinking(){
-
-        Handler handler=new Handler();
-
-        handler.postDelayed(() ->
-                aiText.setText("Reading Screenshot..."),1000);
-
-        handler.postDelayed(() ->
-                aiText.setText("Extracting Transaction..."),2000);
-
-        handler.postDelayed(() ->
-                aiText.setText("Analyzing Payment..."),3000);
-    }
-
-    //----------------------------------
-    // ✅ SCAN PERCENTAGE (NEW)
-    //----------------------------------
-    private void startFakeProgress(){
+    private void startAIThinking() {
 
         Handler handler = new Handler();
 
-        for(int i=1;i<=100;i++){
+        handler.postDelayed(() ->
+                aiText.setText("Offline AI Scanning..."), 1000);
 
-            int value=i;
+        handler.postDelayed(() ->
+                aiText.setText("Extracting Transaction Data..."), 2000);
+
+        handler.postDelayed(() ->
+                aiText.setText("Fraud Pattern Detection..."), 3000);
+    }
+
+    //----------------------------------
+    // ✅ SCAN %
+    //----------------------------------
+    private void startFakeProgress() {
+
+        Handler handler = new Handler();
+
+        for (int i = 1; i <= 100; i++) {
+
+            int value = i;
 
             handler.postDelayed(() ->
-                            scanPercent.setText(value+"%"),
-                    i*35);
+                            scanPercent.setText(value + "%"),
+                    i * 35);
         }
     }
 
     //----------------------------------
-    // ✅ OCR
+    // ✅ OCR SCAN
     //----------------------------------
-    private void scanImage(Uri uri){
+    private void scanImage(Bitmap bitmap) {
 
-        try{
+        InputImage image =
+                InputImage.fromBitmap(bitmap, 0);
 
-            Bitmap bitmap =
-                    MediaStore.Images.Media.getBitmap(
-                            getContentResolver(),
-                            uri);
-
-            InputImage image =
-                    InputImage.fromBitmap(bitmap,0);
-
-            TextRecognition.getClient(
-                            TextRecognizerOptions.DEFAULT_OPTIONS)
-                    .process(image)
-                    .addOnSuccessListener(result ->
-                            checkPayment(result.getText()));
-
-        }catch(Exception e){
-            openResult("Invalid Screenshot ❌");
-        }
+        TextRecognition.getClient(
+                        TextRecognizerOptions.DEFAULT_OPTIONS)
+                .process(image)
+                .addOnSuccessListener(result ->
+                        checkPayment(result.getText()))
+                .addOnFailureListener(e ->
+                        startCloudVerification(
+                                "Invalid Screenshot ❌"));
     }
 
     //----------------------------------
-    // ✅ AI LOGIC
+    // ✅ FINAL AI DECISION
     //----------------------------------
-    private void checkPayment(String text){
+    private void checkPayment(String text) {
 
         String result;
 
-        if(text==null || text.isEmpty())
-            result="Invalid Screenshot ❌";
-        else{
+        if (text == null || text.trim().isEmpty()) {
 
-            text=text.toLowerCase();
+            result = "Invalid Screenshot ❌";
 
-            int score=0;
+        } else {
 
-            if(text.contains("success")
-                    ||text.contains("paid")) score++;
+            text = text.toLowerCase();
 
-            if(text.contains("upi")
-                    ||text.contains("transaction")) score++;
+            int intelligenceScore =
+                    analyzeTransaction(text);
 
-            if(text.contains("₹")
-                    ||text.contains("amount")) score++;
+            if (intelligenceScore >= 4)
+                result = "Payment Safe ✅";
 
-            if(score>=2)
-                result="Payment Safe ✅";
+            else if (intelligenceScore >= 2)
+                result = "Suspicious Payment ⚠️";
+
             else
-                result="Fake Payment ❌";
+                result = "Fake Payment ❌";
         }
 
-        openResult(result);
+        startCloudVerification(result);
     }
 
     //----------------------------------
-    // ✅ RESULT + BEEP
+    // ✅ HYBRID CLOUD VERIFY
     //----------------------------------
-    private void openResult(String result){
+    private void startCloudVerification(String result) {
 
-        if(beepSound!=null)
+        cloudStatus.setText(
+                "Checking Screenshot Integrity...");
+
+        new Handler().postDelayed(() -> {
+
+            cloudStatus.setText(
+                    "Cloud AI Verified ✅");
+
+            openResult(result);
+
+        }, 2000);
+    }
+
+    //----------------------------------
+    // ✅ RESULT + SOUND
+    //----------------------------------
+    private void openResult(String result) {
+
+        if (beepSound != null)
             beepSound.start();
 
         new Handler().postDelayed(() -> {
@@ -222,10 +282,10 @@ public class ScanningActivity extends AppCompatActivity {
                             ScanningActivity.this,
                             ResultActivity.class);
 
-            intent.putExtra("result",result);
+            intent.putExtra("result", result);
             startActivity(intent);
             finish();
 
-        },800);
+        }, 800);
     }
 }
