@@ -3,10 +3,13 @@ package com.paysafe.ai;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,6 +23,10 @@ import java.io.IOException;
 public class ScanningActivity extends AppCompatActivity {
 
     TextView aiText;
+    ImageView paymentImage;
+
+    // ✅ BEEP SOUND PLAYER
+    MediaPlayer beepSound;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,123 +34,180 @@ public class ScanningActivity extends AppCompatActivity {
         setContentView(R.layout.activity_scanning);
 
         aiText = findViewById(R.id.aiText);
+        paymentImage = findViewById(R.id.paymentImage);
 
-        // ✅ SCAN LINE ANIMATION FIX
+        // ✅ LOAD BEEP SOUND
+        beepSound = MediaPlayer.create(this, R.raw.scan_sound);
+
+        //----------------------------------
+        // HUD BLINK EFFECT
+        //----------------------------------
+        TextView status = findViewById(R.id.aiStatus);
+
+        ObjectAnimator blink =
+                ObjectAnimator.ofFloat(status,
+                        "alpha",1f,0.3f);
+
+        blink.setDuration(700);
+        blink.setRepeatMode(ObjectAnimator.REVERSE);
+        blink.setRepeatCount(ObjectAnimator.INFINITE);
+        blink.start();
+
+        //----------------------------------
+        // SCAN LINE ANIMATION
+        //----------------------------------
         View scanLine = findViewById(R.id.scanLine);
 
-        if (scanLine != null) {
+        scanLine.post(() -> {
 
-            scanLine.post(() -> {
+            View parent = (View) scanLine.getParent();
 
-                View parent = (View) scanLine.getParent();
+            float distance =
+                    parent.getHeight()
+                            - scanLine.getHeight();
 
-                float moveDistance =
-                        parent.getHeight() - scanLine.getHeight();
+            ObjectAnimator move =
+                    ObjectAnimator.ofFloat(
+                            scanLine,
+                            "translationY",
+                            0f,
+                            distance);
 
-                ObjectAnimator animator =
-                        ObjectAnimator.ofFloat(
-                                scanLine,
-                                "translationY",
-                                0f,
-                                moveDistance
-                        );
+            move.setDuration(1800);
+            move.setRepeatCount(ObjectAnimator.INFINITE);
+            move.setRepeatMode(ObjectAnimator.REVERSE);
+            move.start();
+        });
 
-                animator.setDuration(1500);
-                animator.setRepeatCount(ObjectAnimator.INFINITE);
-                animator.setRepeatMode(ObjectAnimator.REVERSE);
-                animator.start();
-            });
-        }
+        startAIThinking();
 
+        //----------------------------------
+        // LOAD IMAGE
+        //----------------------------------
         String uriString =
                 getIntent().getStringExtra("imageUri");
 
-        if (uriString != null) {
-            scanImage(Uri.parse(uriString));
-        } else {
-            openResult("Invalid Screenshot ❌");
+        if(uriString!=null){
+
+            Uri imageUri = Uri.parse(uriString);
+
+            try {
+
+                Bitmap bitmap =
+                        MediaStore.Images.Media
+                                .getBitmap(
+                                        getContentResolver(),
+                                        imageUri);
+
+                paymentImage.setImageBitmap(bitmap);
+                paymentImage.setScaleType(ImageView.ScaleType.FIT_XY);
+
+            } catch (IOException e){
+                e.printStackTrace();
+            }
+
+            scanImage(imageUri);
         }
     }
 
-    private void scanImage(Uri uri) {
+    //----------------------------------
+    // AI TEXT FLOW
+    //----------------------------------
+    private void startAIThinking(){
 
-        try {
+        Handler handler=new Handler();
+
+        handler.postDelayed(() ->
+                aiText.setText("Reading Screenshot..."),1000);
+
+        handler.postDelayed(() ->
+                aiText.setText("Extracting Transaction..."),2000);
+
+        handler.postDelayed(() ->
+                aiText.setText("Analyzing Payment..."),3000);
+    }
+
+    //----------------------------------
+    // OCR
+    //----------------------------------
+    private void scanImage(Uri uri){
+
+        try{
 
             Bitmap bitmap =
-                    MediaStore.Images.Media.getBitmap(
-                            getContentResolver(),
-                            uri);
+                    MediaStore.Images.Media
+                            .getBitmap(
+                                    getContentResolver(),
+                                    uri);
 
             InputImage image =
-                    InputImage.fromBitmap(bitmap, 0);
+                    InputImage.fromBitmap(bitmap,0);
 
             TextRecognition.getClient(
                             TextRecognizerOptions.DEFAULT_OPTIONS)
                     .process(image)
-
                     .addOnSuccessListener(result ->
-                            checkPayment(result.getText()))
+                            checkPayment(result.getText()));
 
-                    // ✅ OCR FAIL SAFE
-                    .addOnFailureListener(e ->
-                            openResult("Invalid Screenshot ❌"));
-
-        } catch (IOException e) {
-
-            e.printStackTrace();
+        }catch(Exception e){
             openResult("Invalid Screenshot ❌");
         }
     }
 
-    // ✅ SMART AI LOGIC
-    private void checkPayment(String text) {
+    //----------------------------------
+    // AI LOGIC
+    //----------------------------------
+    private void checkPayment(String text){
 
         String result;
 
-        if (text == null || text.trim().isEmpty()) {
+        if(text==null || text.isEmpty())
+            result="Invalid Screenshot ❌";
+        else{
 
-            result = "Invalid Screenshot ❌";
+            text=text.toLowerCase();
 
-        } else {
+            int score=0;
 
-            text = text.toLowerCase();
+            if(text.contains("success")
+                    ||text.contains("paid")) score++;
 
-            boolean success =
-                    text.contains("success") ||
-                            text.contains("paid") ||
-                            text.contains("transaction") ||
-                            text.contains("credited");
+            if(text.contains("upi")
+                    ||text.contains("transaction")) score++;
 
-            boolean suspicious =
-                    text.contains("failed") ||
-                            text.contains("pending") ||
-                            text.contains("processing");
+            if(text.contains("₹")
+                    ||text.contains("amount")) score++;
 
-            if (success) {
-                result = "Payment Safe ✅";
-            }
-            else if (suspicious) {
-                result = "Suspicious Payment ⚠️";
-            }
-            else {
-                result = "Invalid Screenshot ❌";
-            }
+            if(score>=2)
+                result="Payment Safe ✅";
+            else
+                result="Fake Payment ❌";
         }
 
         openResult(result);
     }
 
-    // ✅ RESULT NAVIGATION
-    private void openResult(String result) {
+    //----------------------------------
+    // RESULT + BEEP SOUND
+    //----------------------------------
+    private void openResult(String result){
 
-        Intent intent =
-                new Intent(
-                        ScanningActivity.this,
-                        ResultActivity.class);
+        // ✅ PLAY SCANNER BEEP
+        if(beepSound != null){
+            beepSound.start();
+        }
 
-        intent.putExtra("result", result);
+        new Handler().postDelayed(() -> {
 
-        startActivity(intent);
-        finish();
+            Intent intent =
+                    new Intent(
+                            ScanningActivity.this,
+                            ResultActivity.class);
+
+            intent.putExtra("result",result);
+            startActivity(intent);
+            finish();
+
+        },800); // small delay after beep
     }
 }

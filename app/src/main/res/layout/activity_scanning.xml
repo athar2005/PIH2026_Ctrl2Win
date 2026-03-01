@@ -14,56 +14,81 @@
         android:layout_height="90dp"
         android:src="@drawable/logo"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="40dp"/>
+        android:layout_marginTop="30dp"/>
 
     <!-- AI TEXT -->
     <TextView
         android:id="@+id/aiText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Analyzing Payment..."
+        android:text="Initializing AI Scan..."
         android:textColor="#FFFFFF"
         android:textSize="22sp"
         android:textStyle="bold"
         android:layout_below="@id/scanLogo"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="30dp"/>
+        android:layout_marginTop="25dp"/>
 
-    <!-- IMAGE AREA -->
+    <!-- ================= SCAN AREA ================= -->
     <FrameLayout
         android:id="@+id/scanArea"
-        android:layout_width="280dp"
-        android:layout_height="280dp"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
         android:layout_centerHorizontal="true"
         android:layout_below="@id/aiText"
         android:layout_marginTop="40dp"
-        android:background="#112240">
+        android:clipToOutline="true">
 
-        <!-- PAYMENT IMAGE -->
+        <!-- REAL IMAGE -->
         <ImageView
             android:id="@+id/paymentImage"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:src="@drawable/logo"/>
+            android:adjustViewBounds="true"/>
 
-        <!-- SCAN LINE -->
+        <!-- DARK GLASS -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#22000000"/>
+
+        <!-- LASER -->
         <View
             android:id="@+id/scanLine"
             android:layout_width="match_parent"
-            android:layout_height="4dp"
-            android:background="#00C896"/>
+            android:layout_height="3dp"
+            android:background="#00FFC6"/>
+
+        <!-- HUD FRAME -->
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/hud_frame"
+            android:scaleType="fitXY"/>
 
     </FrameLayout>
 
-    <!-- PROGRESS -->
+    <!-- AI STATUS -->
+    <TextView
+        android:id="@+id/aiStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="AI SECURITY ENGINE ACTIVE"
+        android:textColor="#00FFC6"
+        android:textSize="14sp"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/scanArea"
+        android:layout_marginTop="25dp"/>
+
+    <!-- PROGRESS BAR -->
     <ProgressBar
         android:id="@+id/progressBar"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="8dp"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="60dp"
-        android:progressTint="#00C896"/>
+        android:layout_marginBottom="50dp"
+        android:progressTint="#00FFC6"/>
 
 </RelativeLayout>
